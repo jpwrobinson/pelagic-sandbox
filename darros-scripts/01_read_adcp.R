@@ -1,5 +1,6 @@
 library(tidyverse)
 library(janitor)
+theme_set(theme_linedraw())
 
 adcp<-rbind(
   read.csv('data/darros-ADCP/Eco358_202511180834.csv', skip=28) %>% mutate(site = 'Manta'),
@@ -15,17 +16,18 @@ adcp<-adcp %>% filter(!Depth == 'm')
 colnames(adcp)<-paste(heads, units, sep='_')
 colnames(adcp)[11]<-'site'
 
-# add date and time
+# add date and time (switch POSIXlt to ct after extracting elements)
 adcp<-adcp %>% mutate(time = strptime(.[[1]], format="%d/%m/%Y %H:%M:%S"),
                        date = dmy(str_split_fixed(.[[1]], ' ', 2)[,1]),
-                       time24 = hms(str_split_fixed(.[[1]], ' ', 2)[,2])) %>% 
+                       time24 = hms(str_split_fixed(.[[1]], ' ', 2)[,2]),
+                      time = as.POSIXct(time)) %>% 
                 select(-1) %>% 
                 mutate(across(c(upper_speed_m_s:tilt_deg), as.numeric)) %>% 
               # drop unit on land
                 filter(depth_m > 16)
 
 
-## estimate degree cooling
-
-
-
+## estimate degree cooling - but what should baseline be? window is short
+ggplot(adcp, aes(time, temperature_degC, col=temperature_degC)) + geom_line() + 
+  facet_grid(site~.) +
+  scale_color_continuous(low = 'blue', high = 'yellow')
