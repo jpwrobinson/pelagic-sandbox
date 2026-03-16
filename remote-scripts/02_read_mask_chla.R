@@ -28,7 +28,7 @@ chl_nc4[values(chl_nc4) > 1] <- NA
 ## 	gebco.net/data_and_products/gridded_bathymetry_data/#global ##
 #----------------------------------------------------------------#
 
-bat_nc <- rast('data/GEBCO_2024_sub_ice_topo.nc')
+bat_nc <- rast('data/GEBCO_2025_sub_ice_topo/GEBCO_2025_sub_ice.nc')
 
 ## Sets the new resolution to 4km
 x <- rast(bat_nc)
@@ -47,7 +47,7 @@ chl_nc4_crop <- terra::crop(chl_nc4, ind_extent)
 bat_mask_crop <- terra::crop(bat_mask, ind_extent)
 chl_nc4_mask <- mask(chl_nc4_crop,bat_mask_crop)
 
-# Now interpolate shallow cells
+2# Now interpolate shallow cells
 chl_approx<-approximate(c(chl_nc4_mask, chl_nc4_crop))
 chl_approx<-chl_approx[[1]]
 
@@ -96,4 +96,26 @@ ggplot(bathy200) +
 ggplot(bathy200) + 
   geom_spatraster(data = bat_crop %>% filter(elevation>-30), aes(fill = elevation)) +
   geom_spatvector(data=bathy200, col='red') +
-  scale_fill_gradientn(colors = grad_cols, name = 'bathymetry, m') 
+  scale_fill_gradientn(colors = grad_cols, name = 'bathymetry, m')  
+
+
+
+amira<-ggplot(bathy200) + 
+  geom_spatraster(data = chl_approx, aes(fill = chlor_a)) +
+  # geom_spatvector(data=bathy200, col='red') +
+  scale_fill_gradientn(
+    colors = grad_cols,
+    transform = 'log10',
+    name = 'chl-a',
+    # breaks=c(10^-1, 10^-.5),
+    limits=c(10^-1, 10^1),
+    labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  coord_sf(xlim = c(52.5, 54), ylim = c(-6.5, -4.7), expand = FALSE) +
+  labs(subtitle = 'Aqua-MODIS (4km, masked)')
+
+ggsave("maps/MODIS_Amirantes_mask.tiff",
+       plot   = amira,
+       width  = 10,
+       height = 8,
+       dpi    = 600)
+

@@ -78,7 +78,7 @@ bat_crop[values(bat_crop) >= 0] <- 0
 ## (all pixels shallower than 30m excluded)
 # chl_reef_mf <- ext_filt(chl_nc1_mask, reef_pt_f, var = chlor_a) 
 
-pdf(file = 'chla_maps.pdf', height=7, width=8)
+pdf(file = 'maps/chla_maps.pdf', height=7, width=8)
 
 # Plot Seychelles.
 ggplot() + 
