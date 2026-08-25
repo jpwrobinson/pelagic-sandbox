@@ -2,6 +2,7 @@ source('remote-scripts/00_plotting.R')
 library(tidyverse)
 library(ncdf4)
 
+# https://data.marine.copernicus.eu/product/OCEANCOLOUR_GLO_BGC_L4_NRT_009_102/description
 nc <- nc_open("data/seychelles_chl_300m/cmems_obs-oc_glo_bgc-plankton_my_l4-olci-300m_P1M_CHL_50.00E-57.00E_9.00S-2.00S_2016-04-01-2025-10-01.nc")
 
 # inspect structure

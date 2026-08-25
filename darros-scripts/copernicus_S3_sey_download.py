@@ -1,4 +1,5 @@
 
+# https://data.marine.copernicus.eu/product/OCEANCOLOUR_GLO_BGC_L4_NRT_009_102/description
 
 import copernicusmarine
 copernicusmarine.login(username='jrobinson12', password='ft3@etJ8X.Lxg4c')

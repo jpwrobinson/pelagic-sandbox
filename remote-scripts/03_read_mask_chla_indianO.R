@@ -8,7 +8,7 @@ library(tidyterra)
 source('remote-scripts/00_plotting.R')
 sey_extent<-c(52.5,57.5, -8, -3)
 sey_extent2<-c(54,57, -5.5, -3)
-ind_extent<-c(52,75, -8, 7.5)
+ind_extent<-c(40,77, -15, 12)
 mald_extent<-c(71.5, 75, 0, 7.5)
 
 #-------------------------------------------------------------#
@@ -29,7 +29,7 @@ chl_nc4[values(chl_nc4) > 1] <- NA
 ## 	gebco.net/data_and_products/gridded_bathymetry_data/#global ##
 #----------------------------------------------------------------#
 
-bat_nc <- rast('data/GEBCO_2024_sub_ice_topo.nc')
+bat_nc <- rast('data/GEBCO_2025_sub_ice_topo/GEBCO_2025_sub_ice.nc')
 
 ## Sets the new resolution to 4km
 x <- rast(bat_nc)
@@ -104,6 +104,45 @@ ggplot() +
     name = 'chl-a',
     labels = scales::trans_format("log10", scales::math_format(10^.x))) +
     white_axis_theme
+
+ggplot() + 
+  # geom_tile(data = chl_df, aes(x=x, y = y, fill=chlor_a)) +
+  geom_spatraster(data = chl_approx, aes(fill = chlor_a)) +
+  scale_x_continuous(expand=c(0,0), limits=ind_extent[c(1,2)]) +
+  scale_y_continuous(expand=c(0,0), limits=ind_extent[c(3,4)]) +
+  scale_fill_gradientn(
+    colors = grad_cols,
+    transform = 'log10',
+    name = 'chl-a',
+    labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  white_axis_theme
 dev.off()
 
 
+## Projected grid for WIO
+
+# Step 1: coarsen to a cleaner grid (adjust fact to taste)
+r_grid <- aggregate(chl_approx, fact = 2, fun = mean, na.rm = TRUE)
+
+# Step 2: smooth with a Gaussian kernel (nicer than a boxcar mean)
+gk <- focalMat(r_grid, d = 2, type = "Gauss")
+r_smooth <- focal(r_grid, w = gk, fun = sum, na.rm = TRUE, na.policy = "omit")
+
+# re-mask to ocean if the smoothing bled values onto land/NA edges
+r_smooth <- mask(r_smooth, r_grid)
+
+# eez <- mregions2::mrp_get("eez") 
+eez_io <- eez %>% filter(sovereign1 %in% c('Seychelles', 'Maldives'))
+
+curved_crs <- "+proj=moll +lon_0=75 +datum=WGS84"   # or +proj=robin
+r_curved   <- project(r_smooth, curved_crs)
+eez_curved <- st_transform(eez_io, curved_crs)
+
+ggplot() +
+  geom_spatraster(data = r_curved) +
+  # geom_sf(data = eez_curved, fill = NA, colour = "grey20", linewidth = 0.3) +
+  scale_fill_gradientn(colours = hcl.colors(20, "Viridis"), na.value = NA) +
+  coord_sf(crs = curved_crs) +
+  theme_void() +
+  theme(legend.position = "right")
+ 
