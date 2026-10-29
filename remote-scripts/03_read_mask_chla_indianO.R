@@ -29,7 +29,7 @@ chl_nc4[values(chl_nc4) > 1] <- NA
 ## 	gebco.net/data_and_products/gridded_bathymetry_data/#global ##
 #----------------------------------------------------------------#
 
-bat_nc <- rast('data/GEBCO_2025_sub_ice_topo/GEBCO_2025_sub_ice.nc')
+bat_nc <- rast('data/GEBCO_2024_sub_ice_topo.nc')
 
 ## Sets the new resolution to 4km
 x <- rast(bat_nc)
